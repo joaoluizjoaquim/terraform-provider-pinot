@@ -465,6 +465,15 @@ func IngestionConfig() schema.SingleNestedAttribute {
 								"stream_kafka_decoder_prop_schema_registry_schema_name": schema.StringAttribute{
 									Optional: true,
 								},
+								"stream_kafka_decoder_prop_schema_registry_max_retries": schema.StringAttribute{
+									Optional: true,
+								},
+								"stream_kafka_decoder_prop_schema_registry_retries_max_wait_ms": schema.StringAttribute{
+									Optional: true,
+								},
+								"stream_kafka_decoder_prop_schema_registry_retries_max_wait": schema.StringAttribute{
+									Optional: true,
+								},
 								"stream_kafka_decoder_prop_schema_registry_ssl_keystore_location": schema.StringAttribute{
 									Optional: true,
 								},
