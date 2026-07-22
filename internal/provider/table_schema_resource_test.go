@@ -63,6 +63,7 @@ func TestAccSchemasResource(t *testing.T) {
 				`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "schema_name", "ethereum_block_headers"),
+					resource.TestCheckResourceAttr("pinot_schema.block_schema", "enable_column_based_null_handling", "false"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.data_type", "LONG"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.name", "block_timestamp"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.format", "1:MILLISECONDS:EPOCH"),
@@ -78,6 +79,7 @@ func TestAccSchemasResource(t *testing.T) {
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.0.data_type", "INT"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.0.not_null", "true"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			// ImportState Testing - This is a special case where we need to import the state of the resource - Not Implemented Yet
 			// {
@@ -122,6 +124,7 @@ func TestAccSchemasResource(t *testing.T) {
 				`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "schema_name", "ethereum_block_headers"),
+					resource.TestCheckResourceAttr("pinot_schema.block_schema", "enable_column_based_null_handling", "false"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.data_type", "LONG"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.name", "block_timestamp"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "date_time_field_specs.0.format", "1:MILLISECONDS:EPOCH"),
@@ -140,6 +143,8 @@ func TestAccSchemasResource(t *testing.T) {
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.1.data_type", "INT"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.1.not_null", "true"),
 				),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
 			},
 			// Delete testing automatically occurs in TestCase
 		},
