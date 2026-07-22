@@ -2,12 +2,14 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	pinot "github.com/azaurus1/go-pinot-api"
 	"github.com/azaurus1/go-pinot-api/model"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -111,6 +113,8 @@ func (t *tableSchemaResource) Schema(_ context.Context, _ resource.SchemaRequest
 						"not_null": schema.BoolAttribute{
 							Description: "Whether the dimension is not null.",
 							Optional:    true,
+							Computed:    true,
+							Default:     booldefault.StaticBool(false),
 						},
 						"single_value_field": schema.BoolAttribute{
 							Description: "Whether the dimension is a single value field.",
@@ -143,6 +147,8 @@ func (t *tableSchemaResource) Schema(_ context.Context, _ resource.SchemaRequest
 						"not_null": schema.BoolAttribute{
 							Description: "Whether the dimension is not null.",
 							Optional:    true,
+							Computed:    true,
+							Default:     booldefault.StaticBool(false),
 						},
 						"transform_function": schema.StringAttribute{
 							Description: "Transform function for specific field.",
@@ -167,6 +173,8 @@ func (t *tableSchemaResource) Schema(_ context.Context, _ resource.SchemaRequest
 						"not_null": schema.BoolAttribute{
 							Description: "Whether the dimension is not null.",
 							Optional:    true,
+							Computed:    true,
+							Default:     booldefault.StaticBool(false),
 						},
 						"format": schema.StringAttribute{
 							Description: "The format of the date time.",
@@ -240,6 +248,14 @@ func (t *tableSchemaResource) Read(ctx context.Context, req resource.ReadRequest
 
 	tableSchema, err := t.client.GetSchema(state.SchemaName.ValueString())
 	if err != nil {
+		// Schema was deleted out-of-band (e.g. removed directly in Pinot).
+		// Drop it from state so Terraform plans a fresh create instead of
+		// erroring out on every refresh.
+		if isNotFoundError(err) {
+			tflog.Info(ctx, fmt.Sprintf("schema %s not found, removing from state", state.SchemaName.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Failed to get schema", err.Error())
 		return
 	}
@@ -282,6 +298,15 @@ func (t *tableSchemaResource) Update(ctx context.Context, req resource.UpdateReq
 
 	tableResp, err := t.client.GetTable(plan.SchemaName.ValueString())
 	if err != nil {
+		// No table exists for this schema yet (e.g. the table create failed or
+		// hasn't run). There are no segments to reload, so this is expected
+		// state, not a failure. Only surface non-404 errors.
+		if isNotFoundError(err) {
+			tflog.Info(ctx, "no table matching this schema, skipping segment reload")
+			diagnostics = resp.State.Set(ctx, &plan)
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
 		resp.Diagnostics.AddError("Update Failed: Unable to get table", err.Error())
 		return
 	}
@@ -386,7 +411,7 @@ func setState(state *tableSchemaResourceModel, schema *model.Schema) {
 		dimensionFieldSpec := dimensionFieldSpec{
 			Name:             fs.Name,
 			DataType:         fs.DataType,
-			NotNull:          basetypes.NewBoolPointerValue(fs.NotNull),
+			NotNull:          basetypes.NewBoolValue(fs.NotNull != nil && *fs.NotNull),
 			SingleValueField: basetypes.NewBoolPointerValue(fs.SingleValueField),
 		}
 		if fs.TransformFunction != "" {
@@ -403,7 +428,7 @@ func setState(state *tableSchemaResourceModel, schema *model.Schema) {
 		metricFieldSpec := metricFieldSpec{
 			Name:     fs.Name,
 			DataType: fs.DataType,
-			NotNull:  basetypes.NewBoolPointerValue(fs.NotNull),
+			NotNull:  basetypes.NewBoolValue(fs.NotNull != nil && *fs.NotNull),
 		}
 		if fs.TransformFunction != "" {
 			metricFieldSpec.TransformFunction = basetypes.NewStringValue(fs.TransformFunction)
@@ -418,7 +443,7 @@ func setState(state *tableSchemaResourceModel, schema *model.Schema) {
 			DataType:    fs.DataType,
 			Format:      fs.Format,
 			Granularity: fs.Granularity,
-			NotNull:     basetypes.NewBoolPointerValue(fs.NotNull),
+			NotNull:     basetypes.NewBoolValue(fs.NotNull != nil && *fs.NotNull),
 		}
 		if fs.TransformFunction != "" {
 			dateTimeFieldSpec.TransformFunction = basetypes.NewStringValue(fs.TransformFunction)
