@@ -139,6 +139,14 @@ func (r *tableResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	tableResponse, err := r.client.GetTable(state.TableName.ValueString())
 	if err != nil {
+		// Table was deleted out-of-band (e.g. removed directly in Pinot, or a
+		// create that failed after leaving stale state). Drop it from state so
+		// Terraform plans a fresh create instead of erroring on every refresh.
+		if isNotFoundError(err) {
+			tflog.Info(ctx, fmt.Sprintf("table %s not found, removing from state", state.TableName.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError("Failed to get table", err.Error())
 		return
 	}
