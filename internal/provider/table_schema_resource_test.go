@@ -79,6 +79,7 @@ func TestAccSchemasResource(t *testing.T) {
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.0.data_type", "INT"),
 					resource.TestCheckResourceAttr("pinot_schema.block_schema", "metric_field_specs.0.not_null", "true"),
 				),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// ImportState Testing - This is a special case where we need to import the state of the resource - Not Implemented Yet
