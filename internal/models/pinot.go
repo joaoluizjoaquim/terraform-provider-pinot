@@ -279,6 +279,9 @@ type StreamConfig struct {
 	StreamKafkaDecoderPropSchemaRegistryBasicAuthCredentialsSource   types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_basic_auth_credentials_source"`
 	StreamKafkaDecoderPropSchemaRegistryRestUrl                      types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_rest_url"`
 	StreamKafkaDecoderPropSchemaRegistrySchemaName                   types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_schema_name"`
+	StreamKafkaDecoderPropSchemaRegistryMaxRetries                   types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_max_retries"`
+	StreamKafkaDecoderPropSchemaRegistryRetriesMaxWaitMs             types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_retries_max_wait_ms"`
+	StreamKafkaDecoderPropSchemaRegistryRetriesMaxWait               types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_retries_max_wait"`
 	StreamKafkaDecoderPropSchemaRegistrySslKeystoreLocation          types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_ssl_keystore_location"`
 	StreamKafkaDecoderPropSchemaRegistrySslKeystorePassword          types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_ssl_keystore_password"`
 	StreamKafkaDecoderPropSchemaRegistrySslKeystoreType              types.String `tfsdk:"stream_kafka_decoder_prop_schema_registry_ssl_keystore_type"`
